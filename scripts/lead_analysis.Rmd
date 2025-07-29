@@ -1,0 +1,63 @@
+---
+title: "Lead analysis"
+author: "Hannah Bensen"
+date: "2025-07-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readr)
+library(tidyverse)
+lead_df_long <- read_csv("/Users/hannahbensen/code/lead/data/lead_data_by_zip_2000_2021.csv")
+data_for_vis <- read_csv("/Users/hannahbensen/code/lead/data/data_for_vis.csv")
+
+```
+
+## Analysis
+
+In this analysis, I use the Blood Lead Level data sent by Jim Asher which included a dataset called BloodLead-tests-2000-2018.xlsx  which has counts of blood lead levels for kids 0-5 for different thresholds from 2000 to 2018 and a similar dataset called Balt-Lead-testing.xlsx with counts of blood lead levels for kids 0-5 for different threshold for 2019-2021. 
+
+I then create a long dataset that contains this data from 2000-2019. I also calculate an estimate of the *percentage* of kids 0-5 with elevated BLL. To do this, I had to get a bit creative: the Census Bureau does not have a population category for kids ages 0-5, and their 0-4 age category was at times less than the counts in the BLL data. I manually estimate the 0-5 population by pulling the total population by zipcode and multiplying by 0.08 - the approximate percentage of the total population in Baltimore with kids age 0-5. I use this number as my denominator, and the count of kids with elevated BLL as my numerator to get the percentage of kids ages 0-5 with elevated BLL. 
+
+In 2021 (the most recent year of our data), the zipcodes with the highest percentage of children with elevated BLL are the following: 
+
+```{r}
+data_for_vis %>%
+  filter(pct_elevated_bll != Inf) %>% 
+  arrange(-pct_elevated_bll) %>% 
+  head(5)
+```
+
+In 2021 (the most recent year of our data), the zipcodes with the highest *counts* of children with elevated BLL are the following:
+
+```{r}
+data_for_vis %>%
+ # filter(pct_elevated_bll != Inf) %>% 
+  arrange(-total) %>% 
+  head(5)
+```
+
+This chart shows the trends of elevated BLL counts over time (from 2000-2021) by zip code. 
+
+```{r}
+ lead_df_long %>% 
+  filter(total_allyears >100) %>% 
+  arrange(total_allyears) %>% 
+  filter(zip != "21202") %>% 
+  ggplot(aes(x = year, y = total)) + 
+  geom_line()+
+  facet_wrap(~zip)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
+
+## Visualizations
+
+The next two chart visualize elevated BLL for by zipcode as a choropleth map. 
+
+<iframe title="Percentage of children 5 and under with elevated Blood Lead Levels" aria-label="map" id="datawrapper-chart-D6nwF" src="https://datawrapper.dwcdn.net/D6nwF/1/" scrolling="no" frameborder="0" style="width: 0; min-width: 100% !important; border: none;" height="829" data-external="1"></iframe><script type="text/javascript">!function(){"use strict";window.addEventListener("message",function(a){if(void 0!==a.data["datawrapper-height"]){var e=document.querySelectorAll("iframe");for(var t in a.data["datawrapper-height"])for(var r,i=0;r=e[i];i++)if(r.contentWindow===a.source){var d=a.data["datawrapper-height"][t]+"px";r.style.height=d}}})}();
+</script>
+
+
+<iframe title="Number of children 5 and under with elevated Blood Lead Levels" aria-label="map" id="datawrapper-chart-gQOgu" src="https://datawrapper.dwcdn.net/gQOgu/1/" scrolling="no" frameborder="0" style="width: 0; min-width: 100% !important; border: none;" height="782" data-external="1"></iframe><script type="text/javascript">!function(){"use strict";window.addEventListener("message",function(a){if(void 0!==a.data["datawrapper-height"]){var e=document.querySelectorAll("iframe");for(var t in a.data["datawrapper-height"])for(var r,i=0;r=e[i];i++)if(r.contentWindow===a.source){var d=a.data["datawrapper-height"][t]+"px";r.style.height=d}}})}();
+</script>
